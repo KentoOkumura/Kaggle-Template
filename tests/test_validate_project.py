@@ -41,6 +41,23 @@ def test_strict_validation_rejects_todo_sample_file(
     assert "strict value still TODO: submission.sample_file" in capsys.readouterr().out
 
 
+@pytest.mark.parametrize("value", ["/tmp/experiments", "../experiments"])
+def test_validation_rejects_repository_paths_outside_the_repository(
+    value: str,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    config = copy.deepcopy(load_project_config())
+    config["paths"]["experiments_dir"] = value
+    monkeypatch.setattr(validate_project, "load_project_config", lambda: config)
+    monkeypatch.setattr(sys, "argv", ["validate_project.py"])
+
+    with pytest.raises(SystemExit):
+        validate_project.main()
+
+    assert "paths.experiments_dir must be a repository-relative path" in capsys.readouterr().out
+
+
 @pytest.mark.parametrize(
     "target_columns",
     [[], "target", ["TODO"], [""], [1]],

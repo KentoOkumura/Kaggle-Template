@@ -22,6 +22,7 @@ try:
         is_todo,
         kaggle_runtime_errors,
         load_project_config,
+        project_path,
         validate_notebook_kind,
     )
 except ImportError:  # Direct execution: `uv run python scripts/prepare_kaggle_notebooks.py`
@@ -32,6 +33,7 @@ except ImportError:  # Direct execution: `uv run python scripts/prepare_kaggle_n
         is_todo,
         kaggle_runtime_errors,
         load_project_config,
+        project_path,
         validate_notebook_kind,
     )
 
@@ -170,9 +172,7 @@ def metadata_validation_errors(
 ) -> list[str]:
     errors: list[str] = []
     if metadata.get("enable_tpu") is not False:
-        errors.append(
-            "enable_tpu is unsupported by this repository and must be explicitly false"
-        )
+        errors.append("enable_tpu is unsupported by this repository and must be explicitly false")
     if expected_enable_gpu is not _UNSET and metadata.get("enable_gpu") is not expected_enable_gpu:
         errors.append(
             "enable_gpu does not match effective runtime config: "
@@ -529,7 +529,8 @@ def main() -> None:
         raise SystemExit("--title is only valid with a single --notebook kind")
 
     config = load_project_config()
-    experiment_dir = ROOT / "experiments" / args.experiment
+    experiments_dir = project_path(config, "paths.experiments_dir")
+    experiment_dir = experiments_dir / args.experiment
     if not experiment_dir.exists():
         raise FileNotFoundError(f"experiment does not exist: {experiment_dir.relative_to(ROOT)}")
     experiment_config = read_yaml(experiment_dir / "config.yaml")

@@ -222,6 +222,34 @@ def test_allow_todo_accepts_todo_lineage_values() -> None:
     assert errors == []
 
 
+def test_current_metrics_reject_unknown_status() -> None:
+    validator = load_validator()
+    errors: list[str] = []
+
+    validator.validate_metrics_record(
+        {"experiment": "exp002_current", "status": "debug_complete"},
+        "exp002_current",
+        legacy_layout=False,
+        errors=errors,
+    )
+
+    assert any("metrics.json has invalid status" in error for error in errors)
+
+
+def test_current_metrics_accept_shared_status_contract() -> None:
+    validator = load_validator()
+
+    for status in validator.EXPERIMENT_STATUSES:
+        errors: list[str] = []
+        validator.validate_metrics_record(
+            {"experiment": "exp002_current", "status": status},
+            "exp002_current",
+            legacy_layout=False,
+            errors=errors,
+        )
+        assert errors == []
+
+
 def test_allow_todo_still_rejects_unregistered_completed_hypothesis() -> None:
     validator = load_validator()
     errors: list[str] = []

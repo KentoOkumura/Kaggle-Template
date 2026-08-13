@@ -77,7 +77,7 @@ make validate-exp EXP=expXXX_name EXTRA_ARGS="--allow-todo"
 
 | 領域 | 管理する内容 |
 | --- | --- |
-| コンペ設定 | `project.yml` に competition、data、defaults、submission、metadata、runtime.kaggle を記録。`paths`が管理するdata、experiments、docs、submission historyの保存先を変える場合だけpathsも更新 |
+| コンペ設定 | `project.yml` に competition、data、defaults、submission、metadata、runtime.kaggle を記録。`paths`はautomationが参照するdata、experiments、docs、submission historyの保存先 |
 | 検証中の上位仮説 | `backlog/KAGGLE_DIRECTION.md` で複数の未着手候補・実験と残っている問いを対応付ける |
 | 未着手候補 | `backlog/KAGGLE_DIRECTION.md` を索引、`backlog/<candidate>.md` を候補詳細の正として管理 |
 | 実験計画 | `experiments/<exp>/requirements.md` に要件、実装方法、受け入れ条件を記録 |
@@ -154,6 +154,8 @@ Kaggle outputを取得する条件とNotebook-only code submissionの操作手�
 
 ## リポジトリ構成
 
+以下は既定の配置です。`project.yml.paths`を変更する場合、automationは設定後のパスを参照します。既存ファイルの移動、Markdownリンク、`.gitignore`も同じ変更で更新してください。
+
 - `.agents/skills/`: このリポジトリ固有の Codex skills。Kaggle 系スキルはここで管理します
 - `.github/workflows/`: リポジトリテンプレートのCI設定
 - `app/`: 実験や OOF を確認する Streamlit アプリ
@@ -176,7 +178,7 @@ Kaggle outputを取得する条件とNotebook-only code submissionの操作手�
 - `AGENTS.md`: エージェント向けの最優先運用ルール
 - `Taskfile.yml`: 推奨コマンド定義
 - `Makefile`: `task` が使えない環境向けの代替コマンド
-- `project.yml`: コンペ単位の competition、data、defaults、submission、metadata、runtime.kaggle の正。`paths`が管理するdata、experiments、docs、submission historyの保存先を変える場合だけpathsも更新
+- `project.yml`: コンペ単位の competition、data、defaults、submission、metadata、runtime.kaggle の正。`paths`はautomationが参照するdata、experiments、docs、submission historyの保存先
 - `SUBMISSIONS.md`: submission refを専用列に持つ提出履歴
 - `backlog/KAGGLE_DIRECTION.md`: 現在の重点、比較基準、検証中の上位仮説、未着手候補の索引
 - `experiment_summary.md`: 実験比較と自動更新される要約

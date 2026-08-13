@@ -6,23 +6,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from config_utils import ROOT
+from config_utils import EXPERIMENT_STATUSES, ROOT, configured_project_path
 from update_experiment_summary import collect_records, render_auto_block, update_summary
 
-EXPERIMENTS_DIR = ROOT / "experiments"
+EXPERIMENTS_DIR = configured_project_path("paths.experiments_dir", "experiments")
 SUMMARY_PATH = ROOT / "experiment_summary.md"
-ALLOWED_STATUSES = {
-    "planned",
-    "running",
-    "usable",
-    "completed",
-    "failed",
-    "discarded",
-    "deprecated",
-    "leak-risk",
-    "debug_completed",
-    "scaffold_completed",
-}
+ALLOWED_STATUSES = EXPERIMENT_STATUSES
 
 
 def parse_args() -> argparse.Namespace:
@@ -100,9 +89,7 @@ def set_nested_value(mapping: dict[str, Any], dotted_key: str, value: Any) -> No
     for part in parts[:-1]:
         child = current.setdefault(part, {})
         if not isinstance(child, dict):
-            raise ValueError(
-                f"cannot set evidence key {dotted_key!r}: {part!r} is not an object"
-            )
+            raise ValueError(f"cannot set evidence key {dotted_key!r}: {part!r} is not an object")
         current = child
     current[parts[-1]] = value
 
@@ -116,9 +103,7 @@ def apply_evidence_assignments(metrics: dict[str, Any], assignments: list[str]) 
     for assignment in assignments:
         key, separator, raw_value = assignment.partition("=")
         if not separator:
-            raise ValueError(
-                f"invalid --evidence value {assignment!r}; expected KEY=VALUE"
-            )
+            raise ValueError(f"invalid --evidence value {assignment!r}; expected KEY=VALUE")
         set_nested_value(evidence, key.strip(), parse_evidence_value(raw_value))
 
 

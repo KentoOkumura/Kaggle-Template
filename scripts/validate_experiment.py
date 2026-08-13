@@ -9,7 +9,9 @@ from typing import Any
 import yaml
 from check_strategy_docs import registered_hypothesis_ids
 from config_utils import (
+    EXPERIMENT_STATUSES,
     ROOT,
+    configured_project_path,
     deep_merge,
     get_nested,
     is_todo,
@@ -213,9 +215,7 @@ def validate_lineage(
             or not BACKLOG_CANDIDATE_RE.fullmatch(backlog_candidate)
         )
     ):
-        errors.append(
-            "invalid lineage.backlog_candidate: expected a backlog candidate name or N/A"
-        )
+        errors.append("invalid lineage.backlog_candidate: expected a backlog candidate name or N/A")
 
     if (
         hypothesis_id is not None
@@ -294,9 +294,43 @@ def validate_config_contract(
             )
 
 
+def validate_metrics_record(
+    metrics: object,
+    experiment_name: str,
+    *,
+    legacy_layout: bool,
+    errors: list[str],
+) -> None:
+    if not isinstance(metrics, dict):
+        errors.append("metrics.json must contain a JSON object")
+        return
+
+    identity = metrics.get("experiment")
+    if identity is None and legacy_layout:
+        print(
+            "WARNING: legacy metrics.json has no experiment identity; add it when this "
+            "experiment is next updated"
+        )
+    elif identity != experiment_name:
+        errors.append(
+            f"metrics.json experiment does not match the experiment directory: {identity!r}"
+        )
+
+    status = metrics.get("status")
+    if status is None and legacy_layout:
+        print(
+            "WARNING: legacy metrics.json has no experiment status; add it when this "
+            "experiment is next updated"
+        )
+    elif status not in EXPERIMENT_STATUSES:
+        allowed = ", ".join(sorted(EXPERIMENT_STATUSES))
+        errors.append(f"metrics.json has invalid status {status!r}; expected one of {allowed}")
+
+
 def main() -> None:
     args = parse_args()
-    experiment_dir = ROOT / "experiments" / args.experiment
+    experiments_dir = configured_project_path("paths.experiments_dir", "experiments")
+    experiment_dir = experiments_dir / args.experiment
     errors: list[str] = []
 
     if not experiment_dir.exists():
@@ -403,18 +437,12 @@ def main() -> None:
         except json.JSONDecodeError as exc:
             errors.append(f"metrics.json is invalid JSON: {exc}")
         else:
-            if not isinstance(metrics, dict):
-                errors.append("metrics.json must contain a JSON object")
-            elif metrics.get("experiment") is None and legacy_layout:
-                print(
-                    "WARNING: legacy metrics.json has no experiment identity; add it when this "
-                    "experiment is next updated"
-                )
-            elif metrics.get("experiment") != args.experiment:
-                errors.append(
-                    "metrics.json experiment does not match the experiment directory: "
-                    f"{metrics.get('experiment')!r}"
-                )
+            validate_metrics_record(
+                metrics,
+                args.experiment,
+                legacy_layout=legacy_layout,
+                errors=errors,
+            )
 
     if errors:
         for error in errors:

@@ -6,7 +6,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 
 import pytest
 
@@ -82,6 +82,31 @@ def test_strategy_context_only_preloads_high_priority_backlog(tmp_path: Path) ->
     assert "backlog/candidate_p2.md" in relative
     assert "backlog/candidate_p4.md" not in relative
     assert "backlog/candidate_invalid.md" not in relative
+
+
+def test_strategy_context_uses_configured_record_directories(tmp_path: Path) -> None:
+    collector = load_module(
+        "collect_strategy_context_custom_paths",
+        ROOT / ".agents/skills/kaggle-strategy/scripts/collect_strategy_context.py",
+    )
+    (tmp_path / "project.yml").write_text(
+        "paths:\n"
+        "  experiments_dir: runs\n"
+        "  docs_dir: knowledge\n"
+        "  submissions_file: history/SUBMISSIONS.md\n"
+    )
+    expected = [
+        tmp_path / "backlog/KAGGLE_DIRECTION.md",
+        tmp_path / "experiment_summary.md",
+        tmp_path / "history/SUBMISSIONS.md",
+        tmp_path / "knowledge/surveys/README.md",
+        tmp_path / "runs/exp010_recent/result.md",
+    ]
+    for path in expected:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("exp010 evidence")
+
+    assert collector.candidate_files(tmp_path, max_files=10) == expected
 
 
 def test_experiment_reviewer_uses_current_canonical_paths(tmp_path: Path) -> None:
@@ -164,6 +189,48 @@ def test_experiment_reviewer_requires_canonical_target_records(tmp_path: Path) -
     assert not has_target
     assert missing == list(reviewer.CHECKS)
     assert "No canonical target experiment records were found." in output
+
+
+def test_experiment_reviewer_uses_configured_experiment_directory(tmp_path: Path) -> None:
+    reviewer = load_module(
+        "review_exp_docs_custom_paths",
+        ROOT / ".agents/skills/kaggle-review-exp/scripts/review_exp_docs.py",
+    )
+    (tmp_path / "project.yml").write_text(
+        "paths:\n  experiments_dir: runs\n  docs_dir: knowledge\n"
+    )
+    result = tmp_path / "runs/exp010_candidate/result.md"
+    result.parent.mkdir(parents=True)
+    result.write_text("# exp010 result\n")
+
+    selected = reviewer.candidate_files(tmp_path, "exp010")
+    reviews = reviewer.collect_reviews(tmp_path, selected)
+
+    assert selected == [result]
+    assert reviews[0]["scope"] == "target evidence"
+
+
+def test_colab_runner_uses_configured_experiment_directory(tmp_path: Path, monkeypatch) -> None:
+    creator = load_module(
+        "create_colab_notebook_custom_paths",
+        ROOT / ".agents/skills/colab-notebook-runner/scripts/create_colab_notebook.py",
+    )
+    (tmp_path / "project.yml").write_text("paths:\n  experiments_dir: runs\n")
+    monkeypatch.setattr(creator, "REPO_ROOT", tmp_path)
+    args = SimpleNamespace(
+        experiment="exp010_candidate",
+        drive_root=Path("/content/drive/MyDrive/project"),
+        run_command="task train-local EXP=exp010_candidate",
+        cache_source=[],
+        local_cache_dir=Path("/content/kaggle_cache"),
+        output=Path("runner.ipynb"),
+    )
+
+    notebook = creator.build_notebook(args)
+    source = "".join(notebook["cells"][4]["source"])
+
+    assert "EXPERIMENTS_PATH = Path('runs')" in source
+    assert "RUN_DIR = EXPERIMENTS_DIR / EXPERIMENT" in source
 
 
 def test_credential_checker_prefers_environment_token(
@@ -370,9 +437,7 @@ def test_notebook_fetch_skips_only_complete_existing_pull(tmp_path: Path, monkey
     )
     target = tmp_path / "owner__example"
     target.mkdir()
-    (target / "kernel-metadata.json").write_text(
-        '{"code_file": "example.py"}', encoding="utf-8"
-    )
+    (target / "kernel-metadata.json").write_text('{"code_file": "example.py"}', encoding="utf-8")
     (target / "example.py").write_text("print('ok')\n", encoding="utf-8")
 
     def unexpected_run(*args, **kwargs):
@@ -392,9 +457,7 @@ def test_notebook_fetch_retries_incomplete_existing_pull(tmp_path: Path, monkeyp
     )
     target = tmp_path / "owner__example"
     target.mkdir()
-    (target / "kernel-metadata.json").write_text(
-        '{"code_file": "example.py"}', encoding="utf-8"
-    )
+    (target / "kernel-metadata.json").write_text('{"code_file": "example.py"}', encoding="utf-8")
     (target / "example.py").write_text("", encoding="utf-8")
     calls = 0
 

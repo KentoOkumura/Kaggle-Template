@@ -7,10 +7,10 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from config_utils import ROOT
+from config_utils import EXPERIMENT_STATUSES, ROOT, configured_project_path
 
 SUMMARY_PATH = ROOT / "experiment_summary.md"
-EXPERIMENTS_DIR = ROOT / "experiments"
+EXPERIMENTS_DIR = configured_project_path("paths.experiments_dir", "experiments")
 BEGIN_MARKER = "<!-- BEGIN AUTO EXPERIMENT SUMMARY -->"
 END_MARKER = "<!-- END AUTO EXPERIMENT SUMMARY -->"
 STATUS_LABELS = {
@@ -25,6 +25,11 @@ STATUS_LABELS = {
     "debug_completed": "デバッグ完了",
     "scaffold_completed": "雛形完了",
 }
+
+if STATUS_LABELS.keys() != EXPERIMENT_STATUSES:
+    raise RuntimeError("experiment status labels do not match the shared status contract")
+
+
 @dataclass(frozen=True)
 class ExperimentRecord:
     name: str

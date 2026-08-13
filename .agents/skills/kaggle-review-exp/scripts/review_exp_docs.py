@@ -5,9 +5,15 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
+
+from config_utils import configured_project_path  # noqa: E402
 
 IGNORE_PARTS = {
     ".git",
@@ -49,12 +55,21 @@ def candidate_files(root: Path, exp: str) -> list[Path]:
     files: set[Path] = set()
     lowered = exp.lower()
 
-    for relative in GLOBAL_RECORDS:
-        path = root / relative
+    docs_dir = configured_project_path("paths.docs_dir", "docs", root=root)
+    submissions_path = configured_project_path(
+        "paths.submissions_file", "SUBMISSIONS.md", root=root
+    )
+    global_records = (
+        root / GLOBAL_RECORDS[0],
+        root / GLOBAL_RECORDS[1],
+        submissions_path,
+        docs_dir / Path(GLOBAL_RECORDS[3]).relative_to("docs"),
+    )
+    for path in global_records:
         if path.is_file():
             files.add(path)
 
-    base_dir = root / "experiments"
+    base_dir = configured_project_path("paths.experiments_dir", "experiments", root=root)
     if base_dir.exists():
         for candidate_dir in base_dir.iterdir():
             if not candidate_dir.is_dir() or lowered not in candidate_dir.name.lower():
@@ -67,7 +82,7 @@ def candidate_files(root: Path, exp: str) -> list[Path]:
                 ):
                     files.add(path)
 
-    surveys_dir = root / "docs" / "surveys"
+    surveys_dir = docs_dir / "surveys"
     if surveys_dir.exists():
         for path in surveys_dir.glob("*.md"):
             if path.name == "README.md":
@@ -100,14 +115,19 @@ def review_file(path: Path) -> dict[str, object]:
 
 
 def evidence_scope(root: Path, path: Path) -> str:
-    relative = path.relative_to(root)
+    experiments_dir = configured_project_path(
+        "paths.experiments_dir", "experiments", root=root
+    )
+    try:
+        experiment_relative = path.relative_to(experiments_dir)
+    except ValueError:
+        return "context"
     if (
-        len(relative.parts) == 3
-        and relative.parts[0] == "experiments"
-        and relative.name in CANONICAL_EXPERIMENT_RECORDS
+        len(experiment_relative.parts) == 2
+        and experiment_relative.name in CANONICAL_EXPERIMENT_RECORDS
     ):
         return "target evidence"
-    if relative.parts and relative.parts[0] == "experiments":
+    if experiment_relative.parts:
         return "supporting material"
     return "context"
 

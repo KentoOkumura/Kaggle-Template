@@ -9,8 +9,13 @@ from pathlib import Path
 
 import yaml
 
-ROOT = Path(__file__).resolve().parents[1]
-SURVEYS_DIR = ROOT / "docs" / "surveys"
+try:
+    from .config_utils import ROOT, configured_project_path
+except ImportError:  # Direct execution: `uv run python scripts/update_survey_index.py`
+    from config_utils import ROOT, configured_project_path
+
+DOCS_DIR = configured_project_path("paths.docs_dir", "docs")
+SURVEYS_DIR = DOCS_DIR / "surveys"
 README_PATH = SURVEYS_DIR / "README.md"
 EXCLUDED_REPORTS = {"README.md", "summary.md"}
 BEGIN_MARKER = "<!-- BEGIN AUTO SURVEY INDEX -->"
@@ -353,7 +358,11 @@ def update_index(
         print(f"survey index is up to date ({len(reports)} reports)")
         return False
     if check:
-        raise SystemExit("docs/surveys/README.md is out of date; run task update-survey-index")
+        try:
+            display_path = readme_path.relative_to(ROOT)
+        except ValueError:
+            display_path = readme_path
+        raise SystemExit(f"{display_path} is out of date; run task update-survey-index")
     readme_path.write_text(expected)
     try:
         display_path = readme_path.relative_to(ROOT)

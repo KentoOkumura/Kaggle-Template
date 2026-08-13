@@ -18,7 +18,9 @@ KERNEL ?=
 KERNEL_VERSION ?= 1
 COMPETITION ?=
 PROJECT_COMPETITION = $(shell PYTHONDONTWRITEBYTECODE=1 .venv/bin/python scripts/project_value.py competition.slug)
+PROJECT_EXPERIMENTS_DIR = $(shell PYTHONDONTWRITEBYTECODE=1 .venv/bin/python scripts/project_value.py paths.experiments_dir)
 RESOLVED_COMPETITION = $(if $(strip $(COMPETITION)),$(COMPETITION),$(PROJECT_COMPETITION))
+EXPERIMENTS_DIR = $(PROJECT_EXPERIMENTS_DIR)
 MESSAGE ?= $(EXP)
 OUTPUT_FILE ?= submission.csv
 OUT ?= /tmp/kaggle-output/$(EXP)/$(NOTEBOOK)
@@ -62,8 +64,8 @@ validate-exp:
 	.venv/bin/python scripts/validate_experiment.py --experiment $(EXP) $(EXTRA_ARGS)
 
 check-exp:
-	.venv/bin/ruff check experiments/$(EXP)
-	.venv/bin/ruff format --check experiments/$(EXP)
+	.venv/bin/ruff check $(EXPERIMENTS_DIR)/$(EXP)
+	.venv/bin/ruff format --check $(EXPERIMENTS_DIR)/$(EXP)
 
 check-skills:
 	.venv/bin/python scripts/validate_skills.py
@@ -73,10 +75,10 @@ check-skills:
 check-skill-modules: check-skills
 
 test-exp:
-	@if [ -d experiments/$(EXP)/tests ]; then \
-		uv run --extra dev --extra notebook pytest -q experiments/$(EXP)/tests; \
+	@if [ -d $(EXPERIMENTS_DIR)/$(EXP)/tests ]; then \
+		uv run --extra dev --extra notebook pytest -q $(EXPERIMENTS_DIR)/$(EXP)/tests; \
 	else \
-		echo "No experiment-specific tests: experiments/$(EXP)/tests"; \
+		echo "No experiment-specific tests: $(EXPERIMENTS_DIR)/$(EXP)/tests"; \
 	fi
 
 test-common:
@@ -118,8 +120,8 @@ prepare-kaggle-notebooks:
 	.venv/bin/python scripts/prepare_kaggle_notebooks.py --experiment $(EXP) --strict $(EXTRA_ARGS)
 
 push-kaggle-notebook:
-	.venv/bin/python scripts/validate_kaggle_metadata.py --package-dir experiments/$(EXP)/kaggle/$(NOTEBOOK)
-	.venv/bin/kaggle kernels push -p experiments/$(EXP)/kaggle/$(NOTEBOOK)
+	.venv/bin/python scripts/validate_kaggle_metadata.py --package-dir $(EXPERIMENTS_DIR)/$(EXP)/kaggle/$(NOTEBOOK)
+	.venv/bin/kaggle kernels push -p $(EXPERIMENTS_DIR)/$(EXP)/kaggle/$(NOTEBOOK)
 
 push-kaggle-train:
 	$(MAKE) push-kaggle-notebook EXP=$(EXP) NOTEBOOK=train
@@ -163,4 +165,4 @@ fmt:
 	.venv/bin/ruff format .
 
 test:
-	uv run --extra dev --extra notebook pytest
+	uv run --extra dev --extra notebook pytest tests $(EXPERIMENTS_DIR)

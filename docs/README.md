@@ -4,7 +4,7 @@
 
 - `01_competition.md`: コンペ概要、目的、提出形式。
 - `02_metric.md`: 評価指標の理解とローカル実装メモ。
-- `03_validation.md`: CV 設計、リークチェック、CV/LB 乖離の記録。
+- `03_validation.md`: CV 設計、リークチェック、CV/LB 乖離の確認方針。
 - `04_data.md`: データ構造、EDA、リスク。
 - `05_workflow.md`: 実験、記録、提出の手順。
 - `06_reproducibility.md`: seed、並列処理、GPU/CPU、Kaggle bootstrap、SHA記録の再現性ガード。

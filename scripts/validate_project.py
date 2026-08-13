@@ -57,6 +57,12 @@ INTEGER_KEYS = {
 }
 POSITIVE_NUMBER_KEYS = {"runtime.kaggle.time_limit_hours"}
 STRING_KEYS = set(STRICT_KEYS) - BOOLEAN_KEYS - INTEGER_KEYS - POSITIVE_NUMBER_KEYS
+REPOSITORY_PATH_KEYS = {
+    "paths.data_dir",
+    "paths.experiments_dir",
+    "paths.docs_dir",
+    "paths.submissions_file",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -77,6 +83,14 @@ def main() -> None:
     for key in REQUIRED_SCHEMA_KEYS:
         if get_nested(config, key) is None:
             errors.append(f"missing required key: {key}")
+
+    for key in sorted(REPOSITORY_PATH_KEYS):
+        value = get_nested(config, key)
+        if is_todo(value) or not isinstance(value, str):
+            continue
+        path = Path(value)
+        if path.is_absolute() or ".." in path.parts:
+            errors.append(f"{key} must be a repository-relative path without '..'")
 
     experiment_template_dir = ROOT / "templates" / "experiment"
     template_contracts = {

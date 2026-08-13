@@ -6,7 +6,13 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
+
+from config_utils import configured_project_path  # noqa: E402
 
 CANONICAL_FILES = (
     "backlog/KAGGLE_DIRECTION.md",
@@ -56,13 +62,25 @@ def candidate_files(root: Path, max_files: int) -> list[Path]:
             selected.append(path)
             seen.add(path)
 
-    for relative in CANONICAL_FILES:
-        add(root / relative)
+    docs_dir = configured_project_path("paths.docs_dir", "docs", root=root)
+    submissions_path = configured_project_path(
+        "paths.submissions_file", "SUBMISSIONS.md", root=root
+    )
+    canonical_paths = (
+        root / CANONICAL_FILES[0],
+        root / CANONICAL_FILES[1],
+        submissions_path,
+        docs_dir / Path(CANONICAL_FILES[3]).relative_to("docs"),
+    )
+    for path in canonical_paths:
+        add(path)
 
     for path in prioritized_backlog_files(root):
         add(path)
 
-    experiments_dir = root / "experiments"
+    experiments_dir = configured_project_path(
+        "paths.experiments_dir", "experiments", root=root
+    )
     experiment_dirs = []
     if experiments_dir.exists():
         experiment_dirs = sorted(

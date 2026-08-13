@@ -121,9 +121,7 @@ def test_metadata_validation_rejects_tpu() -> None:
 
 def test_arbitrary_safe_notebook_kind_is_supported() -> None:
     assert selected_kinds("feature_audit2") == ("feature_audit2",)
-    assert suffixed_kernel_id("owner/exp123", "feature_audit2") == (
-        "owner/exp123-feature-audit2"
-    )
+    assert suffixed_kernel_id("owner/exp123", "feature_audit2") == ("owner/exp123-feature-audit2")
 
 
 @pytest.mark.parametrize("kind", ["../audit", "Audit", "audit-name", "_audit", ""])

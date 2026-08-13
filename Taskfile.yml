@@ -21,6 +21,8 @@ vars:
   KERNEL_VERSION: '{{.KERNEL_VERSION | default "1"}}'
   COMPETITION:
     sh: PYTHONDONTWRITEBYTECODE=1 UV_CACHE_DIR=/tmp/uv-cache uv run python scripts/project_value.py competition.slug
+  EXPERIMENTS_DIR:
+    sh: PYTHONDONTWRITEBYTECODE=1 UV_CACHE_DIR=/tmp/uv-cache uv run python scripts/project_value.py paths.experiments_dir
   MESSAGE: '{{.MESSAGE | default .EXP}}'
   OUTPUT_FILE: '{{.OUTPUT_FILE | default "submission.csv"}}'
   OUT: '{{.OUT | default (printf "/tmp/kaggle-output/%s/%s" .EXP .NOTEBOOK)}}'
@@ -82,8 +84,8 @@ tasks:
   check-exp:
     desc: Run non-mutating lint and format checks for one experiment.
     cmds:
-      - uv run --extra dev ruff check experiments/{{.EXP}}
-      - uv run --extra dev ruff format --check experiments/{{.EXP}}
+      - uv run --extra dev ruff check {{.EXPERIMENTS_DIR}}/{{.EXP}}
+      - uv run --extra dev ruff format --check {{.EXPERIMENTS_DIR}}/{{.EXP}}
 
   check-skills:
     desc: Validate bundled skill structure and lint their Python code.
@@ -99,10 +101,10 @@ tasks:
     desc: Run only one experiment's tests; skip when it has no tests directory.
     cmds:
       - |
-        if [ -d experiments/{{.EXP}}/tests ]; then
-          uv run --extra dev --extra notebook pytest -q experiments/{{.EXP}}/tests
+        if [ -d {{.EXPERIMENTS_DIR}}/{{.EXP}}/tests ]; then
+          uv run --extra dev --extra notebook pytest -q {{.EXPERIMENTS_DIR}}/{{.EXP}}/tests
         else
-          echo "No experiment-specific tests: experiments/{{.EXP}}/tests"
+          echo "No experiment-specific tests: {{.EXPERIMENTS_DIR}}/{{.EXP}}/tests"
         fi
 
   test-common:
@@ -173,8 +175,8 @@ tasks:
   push-kaggle-notebook:
     desc: Validate and push the prepared NOTEBOOK package to Kaggle.
     cmds:
-      - uv run python scripts/validate_kaggle_metadata.py --package-dir experiments/{{.EXP}}/kaggle/{{.NOTEBOOK}}
-      - uv run kaggle kernels push -p experiments/{{.EXP}}/kaggle/{{.NOTEBOOK}}
+      - uv run python scripts/validate_kaggle_metadata.py --package-dir {{.EXPERIMENTS_DIR}}/{{.EXP}}/kaggle/{{.NOTEBOOK}}
+      - uv run kaggle kernels push -p {{.EXPERIMENTS_DIR}}/{{.EXP}}/kaggle/{{.NOTEBOOK}}
 
   push-kaggle-train:
     desc: Compatibility alias that pushes NOTEBOOK=train.
@@ -246,6 +248,6 @@ tasks:
       - uv run ruff format .
 
   test:
-    desc: Run tests.
+    desc: Run all repository and configured experiment tests.
     cmds:
-      - uv run --extra dev --extra notebook pytest
+      - uv run --extra dev --extra notebook pytest tests {{.EXPERIMENTS_DIR}}

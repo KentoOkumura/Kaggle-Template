@@ -15,7 +15,7 @@
   task validate-exp EXP=expXXX_title
   task prepare-kaggle-notebooks EXP=expXXX_title EXTRA_ARGS="--strict"
   task push-kaggle-train EXP=expXXX_title
-  task kaggle-status KERNEL=<username>/<train-kernel-slug>
+  task kaggle-logs KERNEL=<username>/<train-kernel-slug>
   ```
 
 ## リークチェックリスト
@@ -26,12 +26,11 @@
 - [ ] target encoding が fold 外データを参照していないか。
 - [ ] augmentation や前処理が validation に不適切に影響していないか。
 - [ ] 学習時と推論時の前処理が一致しているか。
-- [ ] CV と LB の乖離を `result.md` と `experiment_summary.md` に記録しているか。
+- [ ] CV と LB の数値を`metrics.json`へ記録し、乖離の解釈を`result.md`へ記録しているか。
 
-## CV/LB 乖離ログ
+## CV/LB 乖離の確認
 
-| 実験 | CV | Public LB | 乖離 | メモ |
-| --- | --- | --- | --- | --- |
+横断比較は自動生成される`experiment_summary.md`で確認し、数値を手作業で転記しません。乖離の原因、比較条件、未解決事項は対応する実験の`result.md`へ記録します。
 
 ## 検証判断
 

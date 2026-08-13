@@ -6,6 +6,8 @@ competition:
   is_code_competition: false
 
 paths:
+  # Repository-relative paths used by automation. If these directories move,
+  # move the files and update Markdown links and .gitignore in the same change.
   data_dir: data
   experiments_dir: experiments
   docs_dir: docs

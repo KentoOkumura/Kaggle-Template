@@ -8,7 +8,11 @@ from pathlib import Path
 
 import yaml
 
-ROOT = Path(__file__).resolve().parents[1]
+try:
+    from .config_utils import ROOT, configured_project_path
+except ImportError:  # Direct execution: `uv run python scripts/new_experiment.py`
+    from config_utils import ROOT, configured_project_path
+
 GENERATED_DIRS = ("artifacts",)
 LEGACY_GENERATED_DIRS = ("features", "variants")
 IGNORED_DIRS = (*GENERATED_DIRS, *LEGACY_GENERATED_DIRS, "kaggle")
@@ -59,7 +63,8 @@ def copy_tree(source: Path, destination: Path, force: bool, copy_tests: bool) ->
         ".ruff_cache",
         *IGNORED_DIRS,
     ]
-    if source.parent == ROOT / "experiments" and not copy_tests:
+    experiments_dir = configured_project_path("paths.experiments_dir", "experiments", root=ROOT)
+    if source.parent == experiments_dir and not copy_tests:
         ignored_names.append("tests")
     ignore = shutil.ignore_patterns(*ignored_names)
     shutil.copytree(source, destination, ignore=ignore)
@@ -161,11 +166,11 @@ def reset_parent_records(
         raise RuntimeError("reset metrics.json did not produce a planned child experiment")
 
 
-
 def main() -> None:
     args = parse_args()
     source = (ROOT / args.source).resolve()
-    destination = ROOT / "experiments" / args.name
+    experiments_dir = configured_project_path("paths.experiments_dir", "experiments", root=ROOT)
+    destination = experiments_dir / args.name
 
     if not source.exists():
         raise FileNotFoundError(f"Template/source does not exist: {source}")
@@ -177,18 +182,18 @@ def main() -> None:
         return
 
     copy_tree(source, destination, args.force, args.copy_tests)
-    if source.parent == ROOT / "experiments":
+    if source.parent == experiments_dir:
         replace_parent_experiment_identity(destination, source.name, args.name)
         reset_parent_records(destination, args.name, source.name)
     else:
         replace_tokens(destination, args.name)
 
     print(f"Created {destination.relative_to(ROOT)}")
-    if source.parent == ROOT / "experiments" and not args.copy_tests:
+    if source.parent == experiments_dir and not args.copy_tests:
         print("Source experiment tests were not copied. Add tests for the new experiment contract.")
-    elif source.parent == ROOT / "experiments" and args.copy_tests:
+    elif source.parent == experiments_dir and args.copy_tests:
         print("Source experiment tests were copied; review old experiment paths and expectations.")
-    if source.parent == ROOT / "experiments":
+    if source.parent == experiments_dir:
         print(
             "Parent experiment identity was replaced and execution records were reset to planned. "
             "Review copied input paths and contracts before implementation."

@@ -8,6 +8,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from config_utils import configured_project_path
+
 
 def slugify(value: str) -> str:
     value = value.strip().lower()
@@ -134,7 +136,11 @@ def main() -> int:
     parser.add_argument("--competition", required=True)
     parser.add_argument("--sort-by", default="recent")
     parser.add_argument("--max-pages", type=int, default=10)
-    parser.add_argument("--output-dir", type=Path, default=Path("docs/discussions"))
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=configured_project_path("paths.docs_dir", "docs") / "discussions",
+    )
     parser.add_argument("--listing", type=Path, default=None)
     parser.add_argument(
         "--converter",

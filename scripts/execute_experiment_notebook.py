@@ -6,7 +6,7 @@ import subprocess
 import sys
 import tempfile
 
-from config_utils import ROOT, validate_notebook_kind
+from config_utils import ROOT, configured_project_path, validate_notebook_kind
 
 
 def parse_args() -> argparse.Namespace:
@@ -39,7 +39,8 @@ def main() -> None:
             "for an explicit smoke debug run."
         )
 
-    experiment_dir = ROOT / "experiments" / args.experiment
+    experiments_dir = configured_project_path("paths.experiments_dir", "experiments")
+    experiment_dir = experiments_dir / args.experiment
     notebook_path = experiment_dir / f"{args.experiment}_{args.notebook}.ipynb"
     if not notebook_path.exists():
         raise FileNotFoundError(f"notebook not found: {notebook_path.relative_to(ROOT)}")

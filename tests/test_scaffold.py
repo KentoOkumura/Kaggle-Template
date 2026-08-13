@@ -6,6 +6,7 @@ from scripts.config_utils import (
     ROOT as CONFIG_ROOT,
 )
 from scripts.config_utils import (
+    configured_project_path,
     get_nested,
     load_project_config,
     project_experiment_defaults,
@@ -147,6 +148,19 @@ def test_project_yml_supplies_repository_paths() -> None:
 
     assert project_path(project, "paths.experiments_dir") == CONFIG_ROOT / "experiments"
     assert project_path(project, "paths.submissions_file") == CONFIG_ROOT / "SUBMISSIONS.md"
+
+
+def test_configured_project_path_uses_the_selected_repository_root(tmp_path: Path) -> None:
+    (tmp_path / "project.yml").write_text(
+        "paths:\n  experiments_dir: runs\n  docs_dir: knowledge\n"
+    )
+
+    assert configured_project_path("paths.experiments_dir", "experiments", root=tmp_path) == (
+        tmp_path / "runs"
+    )
+    assert configured_project_path("paths.docs_dir", "docs", root=tmp_path) == (
+        tmp_path / "knowledge"
+    )
 
 
 def test_experiment_template_does_not_duplicate_project_defaults() -> None:

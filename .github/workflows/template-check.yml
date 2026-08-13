@@ -21,5 +21,9 @@ jobs:
         run: make validate-template
       - name: Check bundled skills
         run: make check-skills
+      - name: Check repository Python style
+        run: |
+          uv run --extra dev ruff check .
+          uv run --extra dev ruff format --check .
       - name: Run repository-level common tests
         run: make test-common

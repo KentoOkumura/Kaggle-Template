@@ -12,6 +12,11 @@ import sys
 import time
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
+
+from config_utils import configured_project_path  # noqa: E402
+
 
 def slugify(value: str) -> str:
     value = value.strip().lower()
@@ -129,7 +134,13 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    output_dir = Path(args.output_dir or f"docs/notebooks/{args.competition}")
+    output_dir = (
+        Path(args.output_dir)
+        if args.output_dir
+        else configured_project_path("paths.docs_dir", "docs", root=REPO_ROOT)
+        / "notebooks"
+        / args.competition
+    )
     rows = list_kernels(args.competition, max(args.limit, 20), args.sort_by)
     refs = []
     for row in rows:

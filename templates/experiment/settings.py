@@ -27,6 +27,7 @@ PRESERVED_REVIEW_STATUSES = {
     "discarded",
     "leak-risk",
 }
+EXPERIMENT_STATUSES = AUTOMATED_EXECUTION_STATUSES | PRESERVED_REVIEW_STATUSES
 
 
 def find_project_root(start: Path = PACKAGE_DIR) -> Path:
@@ -88,6 +89,11 @@ def update_metrics(path: Path, updates: dict[str, Any]) -> dict[str, Any]:
     """Merge run-owned values into metrics.json without erasing other evidence."""
     current = read_json_object(path)
     safe_updates = dict(updates)
+    if "status" in safe_updates and safe_updates["status"] not in EXPERIMENT_STATUSES:
+        allowed = ", ".join(sorted(EXPERIMENT_STATUSES))
+        raise ValueError(
+            f"invalid experiment status {safe_updates['status']!r}; expected one of {allowed}"
+        )
     if (
         current.get("status") in PRESERVED_REVIEW_STATUSES
         and safe_updates.get("status") in AUTOMATED_EXECUTION_STATUSES
@@ -143,9 +149,7 @@ def raw_relative_path(
     """Map a configured repository path to its location in a Kaggle competition input."""
     raw_path = Path("data/raw" if is_todo_value(raw_value) else str(raw_value))
     target_path = (
-        raw_path / default_name
-        if is_todo_value(target_value)
-        else Path(str(target_value))
+        raw_path / default_name if is_todo_value(target_value) else Path(str(target_value))
     )
     try:
         relative = target_path.relative_to(raw_path)

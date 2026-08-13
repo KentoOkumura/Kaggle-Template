@@ -18,6 +18,9 @@ import yaml
 PENDING_STATUSES = {"pending", "running", "queued", "submitting"}
 COMPLETE_STATUSES = {"complete", "completed", "finished", "scored"}
 REPO_ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
+
+from config_utils import configured_project_path  # noqa: E402
 
 
 def read_project_competition(project_path: Path | None = None) -> str:
@@ -127,7 +130,9 @@ def resolve_log_path(name: str, log_file: str | None, log_dir: str | None) -> Pa
     if log_dir:
         return Path(log_dir) / f"submission_{safe_name(name)}.log"
 
-    experiments_dir = REPO_ROOT / "experiments"
+    experiments_dir = configured_project_path(
+        "paths.experiments_dir", "experiments", root=REPO_ROOT
+    )
     exact = experiments_dir / name
     if exact.is_dir():
         return exact / "artifacts" / "submission-monitor.log"

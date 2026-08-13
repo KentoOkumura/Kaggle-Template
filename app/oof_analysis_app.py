@@ -5,19 +5,21 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from scripts.config_utils import load_project_config, project_path
+
 ROOT = Path(__file__).resolve().parents[1]
-EXPERIMENTS_DIR = ROOT / "experiments"
+EXPERIMENTS_DIR = project_path(load_project_config(), "paths.experiments_dir")
 
 
 def list_oof_files() -> list[Path]:
     patterns = [
-        "experiments/*/artifacts/*oof*.csv",
-        "experiments/*/features/*oof*.csv",
-        "experiments/*/*oof*.csv",
+        "*/artifacts/*oof*.csv",
+        "*/features/*oof*.csv",
+        "*/*oof*.csv",
     ]
     files: list[Path] = []
     for pattern in patterns:
-        files.extend(ROOT.glob(pattern))
+        files.extend(EXPERIMENTS_DIR.glob(pattern))
     return sorted(set(files))
 
 
@@ -31,7 +33,7 @@ def main() -> None:
 
     oof_files = list_oof_files()
     if not oof_files:
-        st.info("No OOF CSV files found under experiments/.")
+        st.info(f"No OOF CSV files found under {EXPERIMENTS_DIR.relative_to(ROOT)}/.")
         return
 
     selected = st.sidebar.selectbox(

@@ -29,9 +29,7 @@ def test_explicit_monitor_log_path_is_preserved(tmp_path: Path) -> None:
 def test_missing_experiment_uses_temporary_directory() -> None:
     path = MONITOR.resolve_log_path("exp001_baseline", None, None)
     assert path == (
-        Path(tempfile.gettempdir())
-        / "kaggle-submission-monitor"
-        / "submission_exp001_baseline.log"
+        Path(tempfile.gettempdir()) / "kaggle-submission-monitor" / "submission_exp001_baseline.log"
     )
 
 
@@ -41,6 +39,17 @@ def test_unknown_experiment_uses_temporary_directory() -> None:
         Path(tempfile.gettempdir())
         / "kaggle-submission-monitor"
         / "submission_unknown-submission.log"
+    )
+
+
+def test_monitor_uses_configured_experiments_directory(tmp_path: Path, monkeypatch) -> None:
+    experiment = tmp_path / "runs" / "exp001_baseline"
+    experiment.mkdir(parents=True)
+    (tmp_path / "project.yml").write_text("paths:\n  experiments_dir: runs\n")
+    monkeypatch.setattr(MONITOR, "REPO_ROOT", tmp_path)
+
+    assert MONITOR.resolve_log_path("exp001_baseline", None, None) == (
+        experiment / "artifacts" / "submission-monitor.log"
     )
 
 

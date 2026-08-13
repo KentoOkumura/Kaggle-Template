@@ -107,8 +107,7 @@ def test_strategy_docs_accept_empty_backlog(tmp_path: Path) -> None:
     direction = tmp_path / "backlog/KAGGLE_DIRECTION.md"
     text = direction.read_text()
     text = text.replace(
-        "| `HYP-19000101-91` | hypothesis | "
-        "[`candidate_a`](candidate_a.md) | - | remaining |\n",
+        "| `HYP-19000101-91` | hypothesis | [`candidate_a`](candidate_a.md) | - | remaining |\n",
         "",
     )
     text = text.replace(
@@ -397,8 +396,7 @@ def test_strategy_docs_accept_unassigned_legacy_candidate(tmp_path: Path) -> Non
     direction = tmp_path / "backlog/KAGGLE_DIRECTION.md"
     text = direction.read_text()
     hypothesis_row = (
-        "| `HYP-19000101-91` | hypothesis | "
-        "[`candidate_a`](candidate_a.md) | - | remaining |\n"
+        "| `HYP-19000101-91` | hypothesis | [`candidate_a`](candidate_a.md) | - | remaining |\n"
     )
     text = text.replace(hypothesis_row, "")
     text = text.replace("`HYP-19000101-91` | [`candidate_a`]", "`未整理` | [`candidate_a`]")

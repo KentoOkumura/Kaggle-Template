@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import yaml
@@ -60,6 +61,34 @@ def test_source_experiment_tests_can_be_copied_explicitly(
     new_experiment.copy_tree(source, destination, force=False, copy_tests=True)
 
     assert (destination / "tests" / "test_parent.py").exists()
+
+
+def test_main_uses_configured_experiments_directory(
+    tmp_path: Path,
+    monkeypatch,
+    capsys,
+) -> None:
+    source = tmp_path / "templates" / "experiment"
+    source.mkdir(parents=True)
+    (source / "README.md").write_text("# {{ EXPERIMENT_NAME }}\n")
+    (tmp_path / "project.yml").write_text("paths:\n  experiments_dir: runs\n")
+    monkeypatch.setattr(new_experiment, "ROOT", tmp_path)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "new_experiment.py",
+            "--name",
+            "exp002_child",
+            "--source",
+            "templates/experiment",
+            "--dry-run",
+        ],
+    )
+
+    new_experiment.main()
+
+    assert "runs/exp002_child" in capsys.readouterr().out
 
 
 def test_parent_copy_replaces_identity_and_resets_execution_records(

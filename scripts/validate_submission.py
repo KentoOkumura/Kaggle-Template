@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-from config_utils import ROOT, get_nested, is_todo, load_project_config
+from config_utils import ROOT, configured_project_path, get_nested, is_todo, load_project_config
 from update_experiment_summary import collect_records, render_auto_block, update_summary
 
 MISSING_VALUE_STRINGS = {"", "na", "n/a", "nan", "none", "null"}
@@ -311,9 +311,10 @@ def record_validation(
 ) -> None:
     if Path(experiment).name != experiment:
         raise ValueError(f"invalid experiment name: {experiment!r}")
-    experiment_dir = ROOT / "experiments" / experiment
+    experiments_dir = configured_project_path("paths.experiments_dir", "experiments", root=ROOT)
+    experiment_dir = experiments_dir / experiment
     if not experiment_dir.is_dir():
-        raise ValueError(f"experiment does not exist: experiments/{experiment}")
+        raise ValueError(f"experiment does not exist: {experiment_dir}")
     metrics_path = experiment_dir / "metrics.json"
     try:
         metrics = json.loads(metrics_path.read_text()) if metrics_path.exists() else {}

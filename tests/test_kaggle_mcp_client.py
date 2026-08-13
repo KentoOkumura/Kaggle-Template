@@ -66,9 +66,7 @@ def test_mcp_list_tools_returns_structured_timeout(
 
     monkeypatch.setattr(mcp_client.urllib.request, "urlopen", raise_timeout)
 
-    assert mcp_client.mcp_list_tools(token="test-secret-token") == {
-        "error": {"message": "timeout"}
-    }
+    assert mcp_client.mcp_list_tools(token="test-secret-token") == {"error": {"message": "timeout"}}
 
 
 def test_resolve_token_accepts_api_token_without_prefix(

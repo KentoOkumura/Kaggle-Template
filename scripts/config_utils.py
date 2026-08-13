@@ -16,6 +16,25 @@ KAGGLE_RUNTIME_METADATA_KEYS = (
     "enable_tpu",
     "machine_shape",
 )
+AUTOMATED_EXPERIMENT_STATUSES = frozenset(
+    {
+        "planned",
+        "running",
+        "debug_completed",
+        "scaffold_completed",
+        "failed",
+    }
+)
+REVIEW_EXPERIMENT_STATUSES = frozenset(
+    {
+        "usable",
+        "completed",
+        "deprecated",
+        "discarded",
+        "leak-risk",
+    }
+)
+EXPERIMENT_STATUSES = AUTOMATED_EXPERIMENT_STATUSES | REVIEW_EXPERIMENT_STATUSES
 
 
 def load_project_config(path: Path = PROJECT_CONFIG) -> dict[str, Any]:
@@ -107,12 +126,35 @@ def kaggle_runtime_errors(
     return errors
 
 
-def project_path(config: dict[str, Any], dotted_key: str) -> Path:
+def project_path(
+    config: dict[str, Any],
+    dotted_key: str,
+    *,
+    root: Path = ROOT,
+) -> Path:
     value = get_nested(config, dotted_key)
     if is_todo(value):
         raise ValueError(f"project path is not configured: {dotted_key}")
     path = Path(str(value))
-    return path if path.is_absolute() else ROOT / path
+    return path if path.is_absolute() else root / path
+
+
+def configured_project_path(
+    dotted_key: str,
+    default: str | Path,
+    *,
+    root: Path = ROOT,
+) -> Path:
+    """Resolve a repository path from project.yml, with a fallback for test fixtures."""
+    config_path = root / "project.yml"
+    if not config_path.is_file():
+        value: str | Path = default
+    else:
+        config = load_project_config(config_path)
+        configured = get_nested(config, dotted_key)
+        value = default if is_todo(configured) else str(configured)
+    path = Path(value)
+    return path if path.is_absolute() else root / path
 
 
 def deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:

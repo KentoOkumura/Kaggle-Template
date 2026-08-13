@@ -13,6 +13,7 @@ from typing import Any
 try:
     from .config_utils import (
         ROOT,
+        configured_project_path,
         effective_kaggle_runtime,
         get_nested,
         kaggle_runtime_errors,
@@ -25,6 +26,7 @@ try:
 except ImportError:  # Direct execution: `uv run python scripts/validate_kaggle_metadata.py ...`
     from config_utils import (
         ROOT,
+        configured_project_path,
         effective_kaggle_runtime,
         get_nested,
         kaggle_runtime_errors,
@@ -123,13 +125,14 @@ def _bootstrap_files(notebook_path: Path) -> dict[str, bytes]:
 
 
 def _repository_package_context(package_dir: Path) -> tuple[Path, str] | None:
+    experiments_dir = configured_project_path("paths.experiments_dir", "experiments", root=ROOT)
     try:
-        relative = package_dir.resolve().relative_to((ROOT / "experiments").resolve())
+        relative = package_dir.resolve().relative_to(experiments_dir.resolve())
     except ValueError:
         return None
     if len(relative.parts) != 3 or relative.parts[1] != "kaggle":
         return None
-    return ROOT / "experiments" / relative.parts[0], relative.parts[2]
+    return experiments_dir / relative.parts[0], relative.parts[2]
 
 
 def _compare_bytes(
@@ -335,8 +338,7 @@ def validate_package(package_dir: Path) -> dict[str, Any]:
                 packaged_support = package_dir / relative_path
                 if packaged_support.is_file() and packaged_support.read_bytes() != contents:
                     errors.append(
-                        "bootstrap support file does not match prepared package: "
-                        f"{relative_path}"
+                        f"bootstrap support file does not match prepared package: {relative_path}"
                     )
             errors.extend(
                 _repository_consistency_errors(

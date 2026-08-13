@@ -6,10 +6,15 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Any
 
 EXPERIMENT_RE = re.compile(r"exp\d+_[a-z0-9_]+")
+REPO_ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
+
+from config_utils import configured_project_path  # noqa: E402
 
 
 def markdown_cell(source: str) -> dict[str, Any]:
@@ -28,6 +33,13 @@ def code_cell(source: str) -> dict[str, Any]:
 
 def build_notebook(args: argparse.Namespace) -> dict[str, Any]:
     cache_sources = [str(path) for path in args.cache_source]
+    resolved_experiments_path = configured_project_path(
+        "paths.experiments_dir", "experiments", root=REPO_ROOT
+    )
+    try:
+        experiments_path = resolved_experiments_path.relative_to(REPO_ROOT)
+    except ValueError:
+        experiments_path = resolved_experiments_path
     configuration = "\n".join(
         [
             "from pathlib import Path",
@@ -43,10 +55,15 @@ def build_notebook(args: argparse.Namespace) -> dict[str, Any]:
             f"RUN_COMMAND = {args.run_command!r}",
             f"CACHE_SOURCES = {cache_sources!r}",
             f"LOCAL_CACHE_DIR = Path({str(args.local_cache_dir)!r}) / EXPERIMENT",
-            "RUN_DIR = DRIVE_ROOT / 'experiments' / EXPERIMENT / 'artifacts' / 'colab_runs'",
+            f"EXPERIMENTS_PATH = Path({str(experiments_path)!r})",
+            "EXPERIMENTS_DIR = ("
+            "EXPERIMENTS_PATH if EXPERIMENTS_PATH.is_absolute() "
+            "else DRIVE_ROOT / EXPERIMENTS_PATH"
+            ")",
+            "RUN_DIR = EXPERIMENTS_DIR / EXPERIMENT / 'artifacts' / 'colab_runs'",
         ]
     )
-    checks = """required = [DRIVE_ROOT / "project.yml", DRIVE_ROOT / "experiments" / EXPERIMENT]
+    checks = """required = [DRIVE_ROOT / "project.yml", EXPERIMENTS_DIR / EXPERIMENT]
 missing = [str(path) for path in required if not path.exists()]
 if missing:
     raise FileNotFoundError(f"Missing required project paths: {missing}")

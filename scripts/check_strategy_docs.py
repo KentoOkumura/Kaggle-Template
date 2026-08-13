@@ -6,10 +6,10 @@ from pathlib import Path
 import yaml
 
 try:
-    from .config_utils import ROOT
+    from .config_utils import ROOT, configured_project_path
     from .update_survey_index import EXCLUDED_REPORTS, load_report
 except ImportError:  # Direct execution: `uv run python scripts/check_strategy_docs.py`
-    from config_utils import ROOT
+    from config_utils import ROOT, configured_project_path
     from update_survey_index import EXCLUDED_REPORTS, load_report
 
 
@@ -27,9 +27,6 @@ EXPERIMENT_NAME_RE = re.compile(r"exp\d+_[a-z0-9_]+")
 CANDIDATE_NAME_RE = re.compile(r"[a-z0-9_]+")
 DETAIL_LINK_RE = re.compile(r"^\[`(?P<name>[a-z0-9_]+)`\]\((?P=name)\.md\)$")
 DETAIL_LINK_FIND_RE = re.compile(r"\[`(?P<name>[a-z0-9_]+)`\]\((?P=name)\.md\)")
-EXPERIMENT_LINK_RE = re.compile(
-    r"^\[`(?P<name>exp\d+_[a-z0-9_]+)`\]\(\.\./experiments/(?P=name)/\)$"
-)
 DESIGN_READY_FIELDS = (
     "親実験 / 比較対象",
     "実測済みの事実",
@@ -106,12 +103,16 @@ def backlog_rows(text: str) -> list[tuple[int, list[str]]]:
     return rows
 
 
-def experiment_names(cell: str) -> list[str] | None:
+def experiment_names(cell: str, link_prefix: str = "../experiments") -> list[str] | None:
     if cell == "-":
         return []
+    link_re = re.compile(
+        rf"^\[`(?P<name>exp\d+_[a-z0-9_]+)`\]"
+        rf"\({re.escape(link_prefix)}/(?P=name)/\)$"
+    )
     names: list[str] = []
     for part in cell.split("<br>"):
-        match = EXPERIMENT_LINK_RE.fullmatch(part)
+        match = link_re.fullmatch(part)
         if not match:
             return None
         names.append(match.group("name"))
@@ -172,7 +173,8 @@ def validate_design_ready_detail(path: Path, detail: str, hypothesis_id: str) ->
 
 def archived_hypothesis_ids(root: Path) -> set[str]:
     archived: set[str] = set()
-    surveys_dir = root / "docs" / "surveys"
+    docs_dir = configured_project_path("paths.docs_dir", "docs", root=root)
+    surveys_dir = docs_dir / "surveys"
     for path in sorted(surveys_dir.glob("*.md")):
         if path.name in EXCLUDED_REPORTS:
             continue
@@ -237,6 +239,12 @@ def validate_strategy_docs(root: Path = ROOT) -> list[str]:
         errors.append(f"{DIRECTION_PATH} has no backlog index table")
 
     rows = backlog_rows(text)
+    experiments_dir = configured_project_path("paths.experiments_dir", "experiments", root=root)
+    try:
+        experiments_relative = experiments_dir.relative_to(root).as_posix()
+        experiment_link_prefix = f"../{experiments_relative}"
+    except ValueError:
+        experiment_link_prefix = experiments_dir.as_posix()
 
     hypotheses: dict[str, tuple[int, set[str], set[str]]] = {}
     experiment_owners: dict[str, tuple[str, int]] = {}
@@ -272,7 +280,7 @@ def validate_strategy_docs(root: Path = ROOT) -> list[str]:
         candidate_names = {
             match.group("name") for match in DETAIL_LINK_FIND_RE.finditer(candidate_cell)
         }
-        declared_experiments = experiment_names(experiments_cell)
+        declared_experiments = experiment_names(experiments_cell, experiment_link_prefix)
         if declared_experiments is None:
             errors.append(
                 f"{DIRECTION_PATH}:{line_number} hypothesis {hypothesis_id} has invalid "
@@ -382,7 +390,7 @@ def validate_strategy_docs(root: Path = ROOT) -> list[str]:
         hypothesis_id: set() for hypothesis_id in hypotheses
     }
     archived_hypotheses = archived_hypothesis_ids(root)
-    for config_path in sorted((root / "experiments").glob("exp*/config.yaml")):
+    for config_path in sorted(experiments_dir.glob("exp*/config.yaml")):
         try:
             hypothesis_id, backlog_candidate = load_experiment_lineage(config_path)
         except (OSError, ValueError, yaml.YAMLError) as error:
