@@ -17,7 +17,6 @@ REQUIRED_SCHEMA_KEYS = [
     "competition.slug",
     "competition.url",
     "competition.is_code_competition",
-    "paths.data_dir",
     "paths.experiments_dir",
     "paths.docs_dir",
     "paths.submissions_file",
@@ -58,10 +57,14 @@ INTEGER_KEYS = {
 POSITIVE_NUMBER_KEYS = {"runtime.kaggle.time_limit_hours"}
 STRING_KEYS = set(STRICT_KEYS) - BOOLEAN_KEYS - INTEGER_KEYS - POSITIVE_NUMBER_KEYS
 REPOSITORY_PATH_KEYS = {
-    "paths.data_dir",
     "paths.experiments_dir",
     "paths.docs_dir",
     "paths.submissions_file",
+    "data.raw_dir",
+    "data.train_dir",
+    "data.test_dir",
+    "data.processed_dir",
+    "submission.sample_file",
 }
 
 

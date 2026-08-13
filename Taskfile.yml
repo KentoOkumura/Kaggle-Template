@@ -201,7 +201,7 @@ tasks:
       - uv run kaggle kernels status {{.KERNEL}}
 
   kaggle-logs:
-    desc: Stream Kaggle kernel stdout/stderr via the CLI 2.2.3 live SSE endpoint.
+    desc: Stream Kaggle kernel stdout/stderr via the CLI 2.2.4 live SSE endpoint.
     cmds:
       - uv run kaggle kernels logs -f {{.KERNEL}}
 

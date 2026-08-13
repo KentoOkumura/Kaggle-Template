@@ -8,12 +8,13 @@ competition:
 paths:
   # Repository-relative paths used by automation. If these directories move,
   # move the files and update Markdown links and .gitignore in the same change.
-  data_dir: data
   experiments_dir: experiments
   docs_dir: docs
   submissions_file: SUBMISSIONS.md
 
 data:
+  # Canonical repository-relative data paths. Keep train_dir and test_dir
+  # inside raw_dir; processed_dir is the reusable derived-data location.
   raw_dir: data/raw
   train_dir: data/raw/train
   test_dir: data/raw/test

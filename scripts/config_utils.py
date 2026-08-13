@@ -176,9 +176,8 @@ def first_submission_target(config: dict[str, Any]) -> Any:
 
 
 def project_experiment_defaults(project_config: dict[str, Any]) -> dict[str, Any]:
-    data_dir = get_nested(project_config, "paths.data_dir") or "data"
-    raw_dir = get_nested(project_config, "data.raw_dir") or f"{data_dir}/raw"
-    processed_dir = get_nested(project_config, "data.processed_dir") or f"{data_dir}/processed"
+    raw_dir = get_nested(project_config, "data.raw_dir") or "data/raw"
+    processed_dir = get_nested(project_config, "data.processed_dir") or "data/processed"
     seed = get_nested(project_config, "defaults.seed")
 
     defaults: dict[str, Any] = {

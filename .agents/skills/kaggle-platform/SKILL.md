@@ -1,13 +1,13 @@
 ---
 name: kaggle-platform
-description: "Kaggle API、アカウント、データ、コンペリポジトリ操作全般を扱う。Kaggle CLI v2.2.3 の OAuth、live SSE notebook logs、forums/topics、benchmarks、API token 確認、コンペ一覧/詳細レポート、dataset/model の download/upload、Kaggle CLI や kagglehub による notebook/kernel 実行、Kaggle リポジトリテンプレートの設定/検証、`project.yml` の記入、コンペ input file の同期、公式コンペ資料の準備、hackathon writeup 取得、badge 収集、Kaggle API 全般の質問に使う。コードレビュー、提出前検証、提出監視、ノートブック保存、ディスカッション保存、戦略整理、論文調査、実験ワークフロー/レビューには専用スキルを優先する。"
+description: "Kaggle API、アカウント、データ、コンペリポジトリ操作全般を扱う。Kaggle CLI v2.2.4 の OAuth、live SSE notebook logs、forums/topics、benchmarks、API token 確認、コンペ一覧/詳細レポート、dataset/model の download/upload、Kaggle CLI や kagglehub による notebook/kernel 実行、Kaggle リポジトリテンプレートの設定/検証、`project.yml` の記入、コンペ input file の同期、公式コンペ資料の準備、hackathon writeup 取得、badge 収集、Kaggle API 全般の質問に使う。コードレビュー、提出前検証、提出監視、ノートブック保存、ディスカッション保存、戦略整理、論文調査、実験ワークフロー/レビューには専用スキルを優先する。"
 ---
 
 # Kaggle Platform
 
 出典: https://github.com/shepsci/kaggle-skill
 
-互換性: Python 3.11+、Kaggle CLI v2.2.3、requests。CLI と認証確認は基本依存で実行できる。kagglehub を使う操作では、先に `uv sync --locked --extra kaggle-platform` で lock 済みの追加依存を導入する。comp-reportの任意のSPA scrapingだけはhost agent側のPlaywright MCP toolsを使う。badge-collectorを含むリポジトリ内scriptはPlaywrightをinstall・importしない。
+互換性: Python 3.11+、Kaggle CLI v2.2.4、requests。CLI と認証確認は基本依存で実行できる。kagglehub を使う操作では、先に `uv sync --locked --extra kaggle-platform` で lock 済みの追加依存を導入する。comp-reportの任意のSPA scrapingだけはhost agent側のPlaywright MCP toolsを使う。badge-collectorを含むリポジトリ内scriptはPlaywrightをinstall・importしない。
 
 LLM やエージェント型コーディング環境（Claude Code、gemini-cli、Cursor など）向けの Kaggle 統合。アカウント設定、コンペレポート、dataset/model の download、notebook 実行、コンペ提出、hackathon writeup 取得、badge 収集、Kaggle 全般の質問に対応する。4 つの同梱モジュールと、このファイル内のRepository Template Setup手順を使い分ける。
 
@@ -228,7 +228,7 @@ task push-kaggle-notebook EXP=expXXX_title NOTEBOOK=audit
 
 このリポジトリの`prepare-kaggle-notebooks`はTPUに対応しない。生成metadataは`enable_tpu: false`固定で、metadata検証も`true`を拒否する。TPUが必要な実験では生成packageを手編集せず、未対応として停止する。
 
-Kaggle CLI 2.2.3はアカウント全体のActive Sessions数を取得できないため、push前にActive Sessions数を確認する手順は設けない。ユーザー指定の同時session上限はCPU `5`、GPU `2`だが、active数をUIで確認したりユーザーへ転記を依頼したりせず、push前gateには使わない。pushが同時session上限エラーを返した場合だけ待機または停止対象をユーザーに確認し、明示承認なしに既存sessionをcancel / stopしない。
+Kaggle CLI 2.2.4はアカウント全体のActive Sessions数を取得できないため、push前にActive Sessions数を確認する手順は設けない。ユーザー指定の同時session上限はCPU `5`、GPU `2`だが、active数をUIで確認したりユーザーへ転記を依頼したりせず、push前gateには使わない。pushが同時session上限エラーを返した場合だけ待機または停止対象をユーザーに確認し、明示承認なしに既存sessionをcancel / stopしない。
 
 注意:
 - 通常は`--kernel-id`と`--title`を省略し、`prepare-kaggle-notebooks`が`project.yml`のowner、実験名、notebook種別から互いに一致するcanonical kernel id / titleを生成する。生成された`kernel-metadata.json`の`id`末尾slugと`title`由来slugが一致し、50文字以内で、既存notebookと衝突しないことを確認する。
@@ -246,8 +246,8 @@ Kaggle CLI 2.2.3はアカウント全体のActive Sessions数を取得できな�
 Kaggle CLI の notebook 監視での注意:
 - Codex の managed sandbox では `api.kaggle.com` への DNS/network access が制限されることがある。`kaggle kernels push/pull/logs -f/output/status`、`kaggle competitions submit/submissions` など Kaggle API にアクセスする CLI は、最初から host 側のネットワーク許可付きで実行する。sandbox で一度失敗させてから「DNS 解決で落ちたので再実行」と説明する運用はしない。
 - Codex tool で実行する場合は、該当 Kaggle CLI コマンドに `sandbox_permissions: "require_escalated"` と短い justification を付ける。
-- notebook のログ取得は実行中・完了後とも `kaggle kernels logs -f owner/slug` に統一する。CLI 2.2.3 の `-f` は Kaggle UI と同系統の live SSE に接続し、stdout/stderr を逐次取得する。完了済み session では保存済みログへ fallback する。
-- `--interval` は deprecated で CLI 2.2.3 では無視されるため使わない。一定時間だけ監視する必要がある場合も、ログ取得コマンド自体は `kaggle kernels logs -f owner/slug` のままにする。
+- notebook のログ取得は実行中・完了後とも `kaggle kernels logs -f owner/slug` に統一する。CLI 2.2.4 の `-f` は Kaggle UI と同系統の live SSE に接続し、stdout/stderr を逐次取得する。完了済み session では保存済みログへ fallback する。
+- `--interval` は deprecated で CLI 2.2.4 では無視されるため使わない。一定時間だけ監視する必要がある場合も、ログ取得コマンド自体は `kaggle kernels logs -f owner/slug` のままにする。
 - `kaggle kernels status <kernel>` は `GetKernelSessionStatus` 500 を返すことがあるため、完了判定の主経路にしない。
 - `kaggle kernels push` が `Your kernel title does not resolve to the specified id` または詳細なしの `SaveKernel` 400 を返す場合は、`kernel-metadata.json` の `id` と `title` から生成される slug が一致し、50 文字以内か確認する。まず同じ `EXP=expXXX_title` のまま package を再生成し、上記ルールで決めた canonical id/title へそろえる。実験番号を切り直さない。
 - 上記 400 の復旧では、`task prepare-kaggle-notebooks EXP=expXXX_title EXTRA_ARGS="--notebook train --kernel-id username/expXXX-title-train --title 'expXXX title train' --run-on-push"` のように`--kernel-id`と`--title`を同時指定してから同じpushコマンドを再実行する。prepare target自体がpush可能なmetadataを必須とする。inferenceも同じ形で`expXXX-title-inference` / `expXXX title inference`にする。

@@ -1,6 +1,6 @@
 # KLLM — Kaggle Interaction Module
 
-Interact with kaggle.com using kagglehub, Kaggle CLI v2.2.3, Kaggle MCP
+Interact with kaggle.com using kagglehub, Kaggle CLI v2.2.4, Kaggle MCP
 Server, or Kaggle UI. Credential storage and priority follow the canonical
 [registration guide](../registration/references/kaggle-setup.md). Do not create
 a project `.env` solely for Kaggle credentials. **Never put credential values
@@ -139,7 +139,7 @@ uv run kaggle kernels logs -f username/kernel-slug
 uv run kaggle kernels output username/kernel-slug --path /tmp/kaggle-output/kernel-slug
 ```
 
-Kaggle CLI 2.2.3 では notebook のログ取得を `kaggle kernels logs -f owner/slug` に統一する。`-f` は Kaggle UI と同系統の live SSE から stdout/stderr を逐次取得する。`--interval` は使わない。`kaggle kernels status`は診断用の補助情報に限り、完了判定のpollingには使わない。
+Kaggle CLI 2.2.4 では notebook のログ取得を `kaggle kernels logs -f owner/slug` に統一する。`-f` は Kaggle UI と同系統の live SSE から stdout/stderr を逐次取得する。`--interval` は使わない。`kaggle kernels status`は診断用の補助情報に限り、完了判定のpollingには使わない。
 
 See `.agents/skills/kaggle-platform/modules/kllm/scripts/cli_execute.sh` for a complete push-follow-download workflow.
 

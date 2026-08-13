@@ -93,7 +93,6 @@ def test_main_downloads_extracts_and_checks_sample_file(
 ) -> None:
     config = {
         "competition": {"slug": "sample-competition"},
-        "paths": {"data_dir": "data"},
         "data": {"raw_dir": "data/raw"},
         "submission": {"sample_file": "data/raw/sample_submission.csv"},
     }

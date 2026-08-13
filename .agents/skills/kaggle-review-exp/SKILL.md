@@ -191,7 +191,7 @@ task test-exp EXP=expXXX_title
 
 検証範囲は`AGENTS.md`の運用ルールに従う。通常の実験push前には`task fmt`を使わず、`task check-exp`の非破壊チェックを使う。
 
-検証後、実験契約に必要なnotebookだけを`kaggle-platform`の「Repository notebook-first Kaggle flow」でprepare・pushする。slug/title、runtime resource / quota、push後の存在確認、CLI 2.2.3 live SSE logs、output取得の判断、`status` 500、API lagの手順は同skillを正とし、このskillへコマンドを複製しない。
+検証後、実験契約に必要なnotebookだけを`kaggle-platform`の「Repository notebook-first Kaggle flow」でprepare・pushする。slug/title、runtime resource / quota、push後の存在確認、CLI 2.2.4 live SSE logs、output取得の判断、`status` 500、API lagの手順は同skillを正とし、このskillへコマンドを複製しない。
 
 - 学習完了時は、推論に必要なモデル、前処理状態、特徴量名と順序、variant / mode / fold、ファイル形式、相対パス、SHA が保存され、model manifest から同じ実験の inference notebook が再学習なしで解決・読み込みできることを確認する。
 - logs や notebook 表示に CV、fold 別 score、variant/config、保存先パスが不足している場合は、まず notebook 側の表示を改善し、解消していない証拠不足を記録する。実行済みNotebookから追加証拠を取得するかの判断は`kaggle-platform`に従う。

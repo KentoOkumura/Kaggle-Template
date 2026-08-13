@@ -64,7 +64,7 @@ echo "============================================================"
 echo "Step 2: Follow execution logs"
 echo "============================================================"
 
-# CLI 2.2.3 live SSE is the primary monitoring path. `kernels status` can
+# CLI 2.2.4 live SSE is the primary monitoring path. `kernels status` can
 # return GetKernelSessionStatus 500 and must not gate completion.
 "${KAGGLE[@]}" kernels logs -f "${KERNEL_SLUG}"
 echo "Live log stream closed. Inspect the final log or Kaggle UI if completion is unclear."

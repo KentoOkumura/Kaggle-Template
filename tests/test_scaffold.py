@@ -2,6 +2,7 @@ from pathlib import Path
 
 import yaml
 
+import conftest as root_conftest
 from scripts.config_utils import (
     ROOT as CONFIG_ROOT,
 )
@@ -161,6 +162,37 @@ def test_configured_project_path_uses_the_selected_repository_root(tmp_path: Pat
     assert configured_project_path("paths.docs_dir", "docs", root=tmp_path) == (
         tmp_path / "knowledge"
     )
+
+
+def test_pytest_collection_uses_configured_experiments_directory(tmp_path: Path) -> None:
+    (tmp_path / "project.yml").write_text("paths:\n  experiments_dir: runs\n")
+
+    assert root_conftest.configured_experiments_dir(tmp_path) == tmp_path / "runs"
+
+
+def test_pytest_default_collection_adds_configured_experiments_directory(
+    tmp_path: Path, monkeypatch
+) -> None:
+    experiments_dir = tmp_path / "runs"
+    experiments_dir.mkdir()
+    monkeypatch.setattr(
+        root_conftest,
+        "configured_experiments_dir",
+        lambda: experiments_dir,
+    )
+
+    class Config:
+        args = ["tests"]
+
+        @staticmethod
+        def getoption(name: str) -> list[str]:
+            assert name == "file_or_dir"
+            return []
+
+    config = Config()
+    root_conftest.pytest_configure(config)  # type: ignore[arg-type]
+
+    assert config.args == ["tests", str(experiments_dir)]
 
 
 def test_experiment_template_does_not_duplicate_project_defaults() -> None:

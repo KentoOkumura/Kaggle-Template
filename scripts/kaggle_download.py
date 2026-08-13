@@ -84,9 +84,7 @@ def main() -> None:
     if is_todo(slug):
         raise SystemExit("competition.slug is TODO in project.yml")
 
-    raw_dir = get_nested(config, "data.raw_dir") or (
-        Path(str(get_nested(config, "paths.data_dir") or "data")) / "raw"
-    )
+    raw_dir = get_nested(config, "data.raw_dir") or Path("data/raw")
     data_dir = _configured_path(raw_dir)
     data_dir.mkdir(parents=True, exist_ok=True)
 

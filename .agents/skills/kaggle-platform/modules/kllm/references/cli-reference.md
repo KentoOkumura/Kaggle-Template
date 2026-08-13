@@ -140,7 +140,7 @@ kaggle kernels status OWNER/KERNEL
 kaggle kernels delete OWNER/KERNEL [-y]
 ```
 
-Kaggle CLI 2.2.3 では notebook のログ取得を `kaggle kernels logs -f OWNER/KERNEL` に統一する。`-f` は Kaggle UI と同系統の live SSE から stdout/stderr を逐次取得し、完了済み session では保存済みログへ fallback する。`--interval` は deprecated で無視されるため使わない。
+Kaggle CLI 2.2.4 では notebook のログ取得を `kaggle kernels logs -f OWNER/KERNEL` に統一する。`-f` は Kaggle UI と同系統の live SSE から stdout/stderr を逐次取得し、完了済み session では保存済みログへ fallback する。`--interval` は deprecated で無視されるため使わない。
 
 ### kernel-metadata.json
 
