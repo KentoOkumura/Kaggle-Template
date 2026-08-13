@@ -157,7 +157,6 @@ Kaggle outputを取得する条件とNotebook-only code submissionの操作手�
 以下は既定の配置です。`project.yml.paths`を変更する場合、automationは設定後のパスを参照します。既存ファイルの移動、Markdownリンク、`.gitignore`も同じ変更で更新してください。
 
 - `.agents/skills/`: このリポジトリ固有の Codex skills。Kaggle 系スキルはここで管理します
-- `.github/workflows/`: リポジトリテンプレートのCI設定
 - `app/`: 実験や OOF を確認する Streamlit アプリ
 - `backlog/`: 検証中の上位仮説、未着手候補の索引、候補ごとの設計
 - `data/`: ローカルデータキャッシュ。Git には入れません

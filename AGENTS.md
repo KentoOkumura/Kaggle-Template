@@ -109,5 +109,4 @@
 
 ## GitHub 自動化
 
-- このテンプレートは CI で `.github/workflows/template-check.yml` を使います。
-- Anthropic の GitHub アプリと必要なシークレットをこのリポジトリで使う予定がない限り、Claude Code の GitHub Actions は追加しないでください。
+- GitHub Actions は使用しません。ユーザーが明示的に依頼した場合だけ `.github/workflows/` を追加します。
