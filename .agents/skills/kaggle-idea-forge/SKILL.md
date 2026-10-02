@@ -168,7 +168,7 @@ top 5の少なくとも1件は`task_first`、少なくとも1件は`representati
 - `orthogonal`: anchorとの誤差非相関性を狙う。
 - `compute_enabler`: 後続探索を解禁する。
 
-各案を`cheap proxy -> full OOF -> inference smoke`の順にし、各stageのkill criterionを事前固定する。compute案は、解禁する下流algorithmとend-to-end accuracy runをaccept条件へ結び付ける。
+各案は中核機構を保った最小の反証可能な検証から始め、案に応じて検証段階と進行・停止条件を定める。`cheap_test`には、その比較で判別することと、単体では測れない効果を記す。融合・共同選択・後処理の効果は、小規模でも最終処理まで通して確認する。中核を省略するproxyの失敗から元の手法を棄却しない。OOFやinference smokeは適用できる案で使い、全案に同じ順序を強制しない。compute案は、解禁する下流algorithmとend-to-end accuracy runをaccept条件へ結び付ける。
 
 ## 出力
 
