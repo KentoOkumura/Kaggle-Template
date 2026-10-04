@@ -223,7 +223,7 @@ task push-kaggle-notebook EXP=expXXX_title NOTEBOOK=audit
 `task push-kaggle-notebook`またはそのtrain/inference用aliasの直前に次を行う。prepareだけでpushしない場合は対象外。リポジトリ内ではvalidatorを迂回する直接の`kaggle kernels push`を使わない。
 
 1. 生成済み`kernel-metadata.json`の`enable_gpu`、`enable_tpu`、`machine_shape`を読み、`enable_tpu`が`false`で、今回のnotebookがCPU / GPUのどちらを使うか特定する。
-2. GPUを使う場合は`uv run kaggle quota --format json`で週次残時間とrefresh時刻を確認し、想定runtimeに足りるか判断する。CPU pushではquota commandは不要。
+2. GPUを使う場合は`uv run kaggle quota --format json`で週次残時間とrefresh時刻を確認する。枯渇や既知の利用制限は記録して対処し、完走時間を予測するgateは設けない。資源と実測の扱いは`AGENTS.md`の「仮説の探索と実験の進め方」に従う。CPU pushではquota commandは不要。
 3. 確認時刻、push対象resource、GPU残時間、判断を対象実験の`SESSION_NOTES.md`に記録する。
 
 このリポジトリの`prepare-kaggle-notebooks`はTPUに対応しない。生成metadataは`enable_tpu: false`固定で、metadata検証も`true`を拒否する。TPUが必要な実験では生成packageを手編集せず、未対応として停止する。

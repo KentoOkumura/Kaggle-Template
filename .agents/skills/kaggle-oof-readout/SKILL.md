@@ -9,7 +9,7 @@ Use this skill to turn saved out-of-fold (OOF) predictions into a repeatable dia
 
 ## Workflow
 
-1. Use `kaggle-review-exp` for the experiment lifecycle and record contract.
+1. Reuse existing data-exploration observations when the data version and scope match. If the question concerns raw inputs or label creation before predictions exist, use `kaggle-idea-forge` and its `references/data-exploration.md`; OOF is not a prerequisite for that work. Use `kaggle-review-exp` only when creating or changing an authorized experiment.
 2. Read saved OOF predictions instead of retraining when possible.
 3. Declare the ID, target, prediction, group, bucket, and feature columns explicitly. Do not assume a competition schema.
 4. Keep the split and preprocessing fold-safe. Any cache joined to OOF rows must have one row per declared ID unless the contract says otherwise.
@@ -34,7 +34,7 @@ Ignore missing or zero-byte placeholders. Support both local artifact paths and 
 - Does a comparison prediction improve the overall metric while hurting specific groups?
 - Is a follow-up change justified by enough rows and fold-safe evidence?
 
-Feature importance or correlation alone is not evidence that a router, post-process, or submission should be adopted. Convert a finding into a small falsifiable experiment.
+Feature importance or correlation alone is not evidence that a router, post-process, or submission should be adopted. Connect the observation to a comparison that preserves the proposed mechanism, including final selection or post-processing when relevant. Before adding another diagnostic, state which next action its result changes and which effects it cannot rule out. Follow the exploration and experiment principles in `AGENTS.md`; explaining every residual error is not required before proceeding.
 
 ## Bundled helper
 
@@ -65,7 +65,7 @@ When creating or changing formulas in documents or Notebook Markdown cells, foll
 
 ## Validation
 
-Before Kaggle execution:
+Analyzing already saved predictions does not require a new experiment or these execution checks. For an authorized readout experiment that needs Kaggle execution:
 
 ```bash
 task validate-exp EXP=<exp>
