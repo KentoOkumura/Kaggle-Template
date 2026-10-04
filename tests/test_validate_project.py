@@ -27,6 +27,16 @@ def test_all_required_scalar_project_fields_are_strict() -> None:
     }
 
 
+def test_validation_rejects_invalid_document_archive_scope(monkeypatch, capsys):
+    config = copy.deepcopy(load_project_config())
+    config["documentation"] = {"archived_paths": ["."]}
+    monkeypatch.setattr(validate_project, "load_project_config", lambda: config)
+    monkeypatch.setattr(sys, "argv", ["validate_project.py"])
+    with pytest.raises(SystemExit):
+        validate_project.main()
+    assert "must not select the repository root" in capsys.readouterr().out
+
+
 def test_strict_validation_rejects_todo_sample_file(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

@@ -12,6 +12,12 @@ paths:
   docs_dir: docs
   submissions_file: SUBMISSIONS.md
 
+documentation:
+  # Repository-relative files or directories containing unmodified external
+  # sources or frozen study inputs. Default math/link checks exclude these.
+  # List exact paths, not globs. Keep authored indexes and summaries outside.
+  archived_paths: []
+
 data:
   # Canonical repository-relative data paths. Keep train_dir and test_dir
   # inside raw_dir; processed_dir is the reusable derived-data location.

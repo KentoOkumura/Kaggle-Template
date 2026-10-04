@@ -5,6 +5,7 @@ import math
 from pathlib import Path
 
 from config_utils import ROOT, get_nested, is_todo, load_project_config
+from document_scope import archived_document_paths
 from validate_experiment import (
     NEW_REQUIREMENTS_HEADINGS,
     NEW_RESULT_HEADINGS,
@@ -83,6 +84,10 @@ def main() -> None:
     config = load_project_config()
 
     errors: list[str] = []
+    try:
+        archived_document_paths(config, ROOT)
+    except ValueError as exc:
+        errors.append(str(exc))
     for key in REQUIRED_SCHEMA_KEYS:
         if get_nested(config, key) is None:
             errors.append(f"missing required key: {key}")

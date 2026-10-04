@@ -23,7 +23,7 @@ description: "Kaggle コンペのコードやノートブックをレビュー�
 ## Kaggle 固有の確認
 
 - train/validation/test の境界が守られているか確認する。
-- ID と行順が `sample_submission.csv` と一致するか確認する。
+- 提出の行単位とIDの意味をコンペ公式仕様・`project.yml`で確認する。固定行数の予測コンペではID・行順・行数が `sample_submission.csv` と一致するか確認する。予測件数が可変の提出ではsampleを列schemaの照合に使い、必要な入力単位の網羅やIDの参照関係などをコンペ固有の仕様で検証する。
 - オフライン互換性を確認する。ルールで許可されていない限りインターネットを使わず、依存関係やデータは Kaggle input として用意されている必要がある。
 - ファイルシステムの前提を確認する。ローカルパスは `/kaggle/input`、`/kaggle/working`、またはプロジェクト相対パスにきれいに対応するべき。
 - メモリと時間を確認する。batch size、chunking、モデル読み込み、アンサンブル数、multiprocessing、cache の増加に注意する。

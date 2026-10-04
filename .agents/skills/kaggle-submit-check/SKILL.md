@@ -15,6 +15,8 @@ description: "Kaggle 提出前に、提出物と notebook metadata を検証し�
 
 2. リポジトリでは正のCSV validatorを実行する。`EXP`を指定した場合は、PASS/FAIL、行数、重複ID数、欠損数、infinite value数、target統計、submission SHAが同じ実験の`metrics.json`へ自動保存される。対象実験を特定できない場合は`EXP`を省略し、別実験へ推測で保存しない。
 
+同梱の `scripts/validate_submission.py` は、固定行数の数値予測CSVを対象とする。sampleを指定すると行数・IDの一致を検査するため、予測件数が可変の提出へそのまま適用しない。可変行数のコンペを導入するときは、公式の出力単位・行数制約・IDの参照整合性に合わせて正のvalidatorを実装・更新してから使う。sampleやIDの検査を無効化しただけで、コンペ固有の検証を満たしたPASSとして扱わない。
+
 ```bash
 task submit-check EXP=expXXX_title SUBMISSION=/tmp/kaggle-output/expXXX_title/inference/submission.csv
 ```
@@ -25,16 +27,16 @@ task submit-check EXP=expXXX_title SUBMISSION=/tmp/kaggle-output/expXXX_title/in
 uv run python .agents/skills/kaggle-submit-check/scripts/check_submission.py PATH --sample sample_submission.csv
 ```
 
-`--sample`はsample fileが存在する場合だけ使う。リポジトリ外へcheckerだけをコピーして使わず、正のvalidatorと`project.yml`を含むリポジトリルートから実行する。
+`--sample`はsample fileが存在する場合だけ使う。リポジトリ外へcheckerだけをコピーして使わず、正のvalidatorと`project.yml`を含むリポジトリルートから実行する。提出の行単位・ID規則・行数制約はコンペ公式仕様と`project.yml`を確認する。固定行数の予測コンペだけsampleとの1対1整列を要求し、予測件数が可変の提出では上記のvalidator更新後にsampleを列schemaの照合に使う。
 
 3. スクリプトだけでは証明できない warning を手で確認する。
    - CV は test で想定される grouping/time split と一致しているか。
-   - 出力は `sample_submission.csv` の行順を保っているか。
+   - 固定行数の予測コンペでは、出力は `sample_submission.csv` の行順を保っているか。予測件数が可変の場合は、コンペ固有の行単位・ID規則・入力単位の網羅を満たすか。
    - Kaggle のオフライン環境で依存関係を利用できるか。
    - ルールで許可されていない限り、internet が無効になっているか。
    - Kaggle Notebook の実行時間とメモリ制限に収まる推論になっているか。
    - code competition では公開 `test/` と `sample_submission.csv` が hidden test 用に差し替えられても動作するか。公開 test 固有の ID、行数、ファイル名、SHA、予測値に依存していないか。
-   - hidden test の入力と保存済み model manifest / model 生成物だけで推論が完結し、実行時の sample submission と ID で 1 対 1 に整列できるか。
+   - hidden test の入力と保存済み model manifest / model 生成物だけで推論が完結するか。実行時のsampleとのIDによる1対1整列は固定行数の予測コンペで確認する。
 
 4. 結果を報告する。
    - `PASS`: チェックした範囲からは提出してよい。
@@ -55,11 +57,11 @@ Kaggle 実験リポジトリ内で作業する場合:
 5. submit が行われてスコアが分かったら、リポジトリに記録する。
 
 ```bash
-task record-exp EXP=expXXX CV=0.1234 PUBLIC_LB=0.1200
+task record-exp EXP=expXXX SUBMISSION_REF=12345678 CV=0.1234 PUBLIC_LB=0.1200
 task record-submission EXP=expXXX SUBMISSION=/path/to/submission.csv SUBMISSION_REF=12345678 EXTRA_ARGS="--notes baseline"
 ```
 
-`record-exp`を先に実行して`metrics.json`と`experiment_summary.md`を更新する。`record-submission`はCV/LBの引数を受け取らず、`metrics.json`の現在値を読み、指定された単一のsubmission refとともに`SUBMISSIONS.md`へ記録する。同じrefを再指定すると既存行を更新するため、Private LB判明後も新しい行を追加しない。同じスコアを複数のコマンドへ手入力しない。
+`record-exp`にsubmission refを渡し、先に`metrics.json.submissions[submission_ref]`へ当該提出の値を記録する。この操作では実験の代表CV/LBと実験statusを上書きしない。`record-submission`はCV/LBの引数を受け取らず、同じrefの値を読み、`SUBMISSIONS.md`へ記録する。同じrefを再指定すると既存行を更新するため、Private LB判明後も新しい行を追加しない。同じスコアを複数のコマンドへ手入力しない。実験の代表値を変える場合は、submission refなしの`record-exp`で明示的に更新する。
 
 code competitionでKaggle outputをローカル取得していない場合は、`kaggle kernels files`またはUIで対象kernel versionの`submission.csv`を確認したうえで、ローカルファイル証拠を未取得として記録する。
 
@@ -70,13 +72,13 @@ task record-submission EXP=expXXX SUBMISSION=submission.csv SUBMISSION_REF=12345
 記録先の役割は`AGENTS.md`を正とする。`EXP`付きの`submit-check`は検証結果とsubmission SHAを対象実験の構造化された証拠へ保存する。提出コマンド、scoring経過、結果の解釈は同じ実験の正本へ分担して追記し、ここでは別の分担規則を定義しない。
 
 確認項目:
-- 行数が `sample_submission.csv` と一致している。
+- 固定行数の予測コンペでは行数が `sample_submission.csv` と一致している。予測件数が可変の場合は、公式仕様の行数制約と必要な入力単位の網羅を満たす。
 - 必須列が存在し、想定外の追加列がある場合は意図的である。
-- id column が設定されている場合、ID の順序と内容が一致している。
+- id column が設定されている場合、コンペ固有の一意性・参照関係を満たす。sampleとのIDの順序・内容の一致は固定行数の予測コンペだけで要求する。
 - missing、NaN、infinite values がない。
 - offline/notebook competition では、ルールで許可されていない限り `enable_internet` が false。
 - code competition では、公開 test 固有値に依存せず hidden test に差し替え可能である。
-- 保存済み model manifest / model 生成物だけで推論でき、実行時の sample submission に ID で完全整列する。
+- 保存済み model manifest / model 生成物だけで推論でき、コンペ固有の行単位とID規則を満たす。固定行数の予測コンペでは実行時のsampleにIDで完全整列する。
 
 ## 提出物の種類
 

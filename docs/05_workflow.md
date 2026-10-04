@@ -36,6 +36,6 @@ Kaggle Notebookの公式評価とlocal smokeの扱い、およびsubmissionの�
 
 ## 記録と判断
 
-実験記録の各ファイルの役割、実験status、ユーザー判断の規則は`AGENTS.md`を正とします。このworkflowでは、スコア確定時に`record-exp`を先に実行し、その後`record-submission`で同じ値を再入力せず提出履歴を更新します。
+実験記録の各ファイルの役割、実験status、ユーザー判断の規則は`AGENTS.md`を正とします。スコア確定時は`record-exp`に`SUBMISSION_REF=<ref>`を渡し、その提出の値を`metrics.json.submissions[ref]`へ記録します。その後、同じrefで`record-submission`を実行し、スコアを再入力せず提出履歴を更新します。実験の代表CV/LBや実験statusを変更する場合は、submission refなしの`record-exp`で明示的に更新します。
 
 再現性の証拠と rerun 方針は `docs/06_reproducibility.md` を参照します。実験前の文献・公開Notebook調査、単一実験の完了分析、実験横断の完了調査は `docs/surveys/` に保存し、`docs/surveys/README.md` を検索入口にします。
