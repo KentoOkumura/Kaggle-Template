@@ -99,6 +99,27 @@ def effective_kaggle_runtime(
     return resolved
 
 
+def effective_kaggle_sources(
+    experiment_config: dict[str, Any], notebook_kind: str
+) -> dict[str, list[str]]:
+    """Resolve attached inputs using the same precedence as notebook preparation."""
+    sources: dict[str, list[str]] = {}
+    for key in ("kernel_sources", "dataset_sources", "model_sources"):
+        value = get_nested(experiment_config, f"runtime.kaggle.{notebook_kind}.{key}")
+        if value is None:
+            value = get_nested(experiment_config, f"runtime.kaggle.{notebook_kind}_{key}")
+        if value is None:
+            value = get_nested(experiment_config, f"runtime.kaggle.{key}")
+        if value is None:
+            value = []
+        if not isinstance(value, list) or any(
+            not isinstance(item, str) or is_todo(item) for item in value
+        ):
+            raise ValueError(f"runtime.kaggle {key} must be a list of non-empty strings")
+        sources[key] = list(value)
+    return sources
+
+
 def kaggle_runtime_errors(
     settings: dict[str, Any],
     *,
