@@ -27,3 +27,13 @@
 取得したDiscussion原文・公開Notebook・内容を固定した調査入力コピーは、`project.yml`の`documentation.archived_paths`へリポジトリルートからの相対パスを登録すると、既定の数式・ローカルリンク検査から除外できます。個別ファイル、または原文だけを置いたディレクトリを指定します。ワイルドカードは使いません。設定は空の一覧から始まり、保存先を変更した場合も登録パスを更新します。
 
 自分で編集する索引、要約、実験記録を除外対象へ含めないでください。除外した原文も、`check-markdown-math`へファイルを明示指定すれば検査できます。数式の記法と検証手順は[AGENTS.md](../AGENTS.md#markdown-と-notebook-の数式)を参照してください。
+
+## ローカルリンクの検査
+
+`task validate-template`（`task`がない場合は`make validate-template`）で、ローカルファイルとMarkdownの見出しへのリンクを検査します。ローカルにない実験生成物は、既存実験の`artifacts/`配下で、Gitの追跡対象ではなくignoreされている場合だけ、未取得・未検証のリンクとして件数と一覧を表示します。通常の文書・sourceやGit追跡ファイルの欠損はエラーです。
+
+生成物も配置した環境でリンク先の存在を確認するときは、未取得の生成物もエラーにする次の検査を使います。生成物の内容やSHAの確認は、各実験の契約に従って別に行います。
+
+```bash
+uv run python scripts/check_markdown_links.py --require-generated
+```
